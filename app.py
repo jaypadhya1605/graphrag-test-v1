@@ -1473,6 +1473,11 @@ def initialize_services():
     
     # Initialize Gremlin Client
     try:
+
+        print(f"Attempting to connect to: {Config.GREMLIN_ENDPOINT}")
+        print(f"Using database: {Config.GREMLIN_DATABASE}")
+        print(f"Using collection: {Config.GREMLIN_COLLECTION}")
+    
         gremlin_client = client.Client(
             Config.GREMLIN_ENDPOINT,
             'g',
@@ -1487,6 +1492,7 @@ def initialize_services():
         services['clients']['gremlin'] = gremlin_client
         services['status']['gremlin'] = {'status': 'connected', 'vertices': vertex_count}
     except Exception as e:
+        print(f"Detailed Gremlin error: {type(e).__name__}: {str(e)}")
         services['status']['gremlin'] = {'status': 'failed', 'error': str(e)}
         services['clients']['gremlin'] = None
     
@@ -2008,4 +2014,5 @@ def main():
         """)
 
 if __name__ == "__main__":
+
     main()
