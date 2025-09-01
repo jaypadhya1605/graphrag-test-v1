@@ -1467,10 +1467,50 @@ class IncrementalDocumentProcessor:
 def initialize_services():
     """Initialize all services and connections - GPT-4.1 Only Version"""
     services = {
-        'status': {},
-        'clients': {}
+        'status': {},'clients': {}
     }
+
     
+    #Adding testing recommendation -v1
+    st.write("🔍 Testing OpenAI connection...")
+    try:
+        openai_client = AzureOpenAI(
+            api_version="2024-12-01-preview",
+            azure_endpoint="https://azure-ai-foundry-genai.cognitiveservices.azure.com/",
+            api_key="4VLn9irDByzTBaiFVFVKwp4dO1yZQRetUIhAEgryX1hSARocLnqwJQQJ99BEACHYHv6XJ3w3AAAAACOGegEq"
+        )
+        
+        response = openai_client.chat.completions.create(
+            model="gpt-4.1",  # This might be the wrong model name
+            messages=[{"role": "user", "content": "test"}],
+            max_tokens=5
+        )
+        services['status']['openai'] = {'status': 'connected'}
+        st.write("✅ OpenAI connected!")
+    except Exception as e:
+        st.write(f"❌ OpenAI failed: {str(e)}")
+        services['status']['openai'] = {'status': 'failed', 'error': str(e)}
+
+
+
+    st.write("🔍 Testing Gremlin connection...")
+    try:
+        from gremlin_python.driver import client, serializer
+        gremlin_client = client.Client(
+            "wss://idefixapp-dev-graph.gremlin.cosmos.azure.com:443/",
+            'g',
+            username=f"/dbs/GraphDB/colls/GraphDB-id",
+            password="gLEHBNYhwj15qcnz2uwNbU2DahEen9vX48EGuXZkpWIWG2xOWB3HCa9q966BGhU5Ilt05qJo9cyOACDbAQsPbA==",
+            message_serializer=serializer.GraphSONSerializersV2d0()
+        )
+        result = gremlin_client.submit("g.V().count()")
+        count = result.all().result()[0]
+        services['status']['gremlin'] = {'status': 'connected', 'vertices': count}
+        st.write(f"✅ Gremlin connected! {count} vertices")
+    except Exception as e:
+        st.write(f"❌ Gremlin failed: {str(e)}")
+        services['status']['gremlin'] = {'status': 'failed', 'error': str(e)}
+
     # Initialize Gremlin Client
     try:
 
@@ -2016,3 +2056,4 @@ def main():
 if __name__ == "__main__":
 
     main()
+
